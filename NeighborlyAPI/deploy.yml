@@ -1,0 +1,195 @@
+data:
+  FUNCTIONS_WORKER_RUNTIME: cHl0aG9u
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cuongtv22fa
+---
+data:
+  host.master: NFVha25DcmdVZTdSc0hjdmdLTVJsS3NfeTgtTkdWYUZsR0VqRXBFbkRtQi1BekZ1MV9URGxRPT0=
+  host.function.default: Q2F6YV8yOEVuZWtSOWFLRGNfXzhUNHJrc2IxcnltZVQ1eUtqSEZhN2FFWWJBekZ1M0UyeFNRPT0=
+  host.systemKey.default: dXpwdEJ6cEtZYVZSbl9IMUpGVmhweVd2azI5NnBhY0t3b05vbElkczN6S2FBekZ1dU1LbjNBPT0=
+  functions.createadvertisement.default: RjJJOHNtVi1nTU1GS2tPaUl6bm95MXRULUdiOXo5NTF4dWlwYlZublk5MDVBekZ1cklWQVRnPT0=
+  functions.deleteadvertisement.default: ZEpUNXZ1cmtXc3lWeUtkQ2lkWGFTRmxOWV9HOG9WR25Dd0otckk2X2ZfZTlBekZ1by1LZHh3PT0=
+  functions.getadvertisement.default: V0oyWkFpM1dfUVdFZ2xMODIwRWlRc0g3Y0pLTkt3ZE1abkhNNkU4SlZUMGJBekZ1Tm4wVUdBPT0=
+  functions.getadvertisements.default: UjZFS1djZF9SZDZqNGhuZWdzQ0FjUE12RXViMnd3aDRiZmdKMVV6bHMzT09BekZ1SHFrVGZnPT0=
+  functions.getpost.default: bkNISDU4N1Y0d3dBY0czOHJ6RzF4SmxtZTRYN3JvMk5nMFVCZFBkdGYzeWhBekZ1U2NQV3RBPT0=
+  functions.getposts.default: Ul9sUHVUek9nbUFoXzZXN3VQd1RPQXlYVllXZndoa01MZ2FuMDBNVmlhSkxBekZ1Nk52X3h3PT0=
+  functions.updateadvertisement.default: QkxMX0xpZW5WMmdrZ2xlNUEyYkl4Y2k1c0gydWFsbzlxaXRTWFNCLVk2SDRBekZ1X2M5MjBRPT0=
+apiVersion: v1
+kind: Secret
+metadata:
+  name: func-keys-kube-secret-cuongtv22fa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cuongtv22fa-function-keys-identity-svc-act
+---
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  - configMaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: functions-keys-manager-role
+---
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: functions-keys-manager-role
+subjects:
+- kind: ServiceAccount
+  name: cuongtv22fa-function-keys-identity-svc-act
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cuongtv22fa-function-keys-identity-svc-act-functions-keys-manager-rolebinding
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cuongtv22fa-http
+spec:
+  selector:
+    app: cuongtv22fa-http
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cuongtv22fa-http
+  labels:
+    app: cuongtv22fa-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cuongtv22fa-http
+  template:
+    metadata:
+      labels:
+        app: cuongtv22fa-http
+    spec:
+      containers:
+      - name: cuongtv22fa-http
+        image: cuongtv22acr/cuongtv22fa:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: AzureFunctionsJobHost__functions__0
+          value: createAdvertisement
+        - name: AzureFunctionsJobHost__functions__1
+          value: deleteAdvertisement
+        - name: AzureFunctionsJobHost__functions__2
+          value: getAdvertisement
+        - name: AzureFunctionsJobHost__functions__3
+          value: getAdvertisements
+        - name: AzureFunctionsJobHost__functions__4
+          value: getPost
+        - name: AzureFunctionsJobHost__functions__5
+          value: getPosts
+        - name: AzureFunctionsJobHost__functions__6
+          value: updateAdvertisement
+        - name: AzureWebJobsSecretStorageType
+          value: kubernetes
+        - name: AzureWebJobsKubernetesSecretName
+          value: secrets/func-keys-kube-secret-cuongtv22fa
+        envFrom:
+        - secretRef:
+            name: cuongtv22fa
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+      serviceAccountName: cuongtv22fa-function-keys-identity-svc-act
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cuongtv22fa
+  labels:
+    app: cuongtv22fa
+spec:
+  selector:
+    matchLabels:
+      app: cuongtv22fa
+  template:
+    metadata:
+      labels:
+        app: cuongtv22fa
+    spec:
+      containers:
+      - name: cuongtv22fa
+        image: cuongtv22acr/cuongtv22fa:latest
+        env:
+        - name: AzureFunctionsJobHost__functions__0
+          value: eventHubTrigger
+        envFrom:
+        - secretRef:
+            name: cuongtv22fa
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+      serviceAccountName: cuongtv22fa-function-keys-identity-svc-act
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: cuongtv22fa
+  labels: {}
+spec:
+  scaleTargetRef:
+    name: cuongtv22fa
+  triggers:
+  - type: eventgridtrigger
+    metadata:
+      direction: in
+      eventHubName: testhub
+      connection: Endpoint=sb://udacityneighborly.servicebus.windows.net/;SharedAccessKeyName=allpolicy;SharedAccessKey=LOxUOkN13xN038T1VoSsmaTt4s7vq/+VCzduS5/nH9A=;EntityPath=testhub
+---
+
